@@ -1,0 +1,63 @@
+#!/usr/bin/env ruby
+# © 2012 Ruben Verborgh - Multimedia Lab
+
+if ARGV == ['--help']
+  puts "Converts the AAT vocabulary from XML format to Turtle."
+  puts "usage: aat_to_turtle AAT.xml"
+  Kernel.exit
+end
+
+require 'rubygems'
+require 'xml'
+
+subject_id = ""
+label = ""
+language = ""
+
+puts "@prefix skos: <http://www.w3.org/2004/02/skos/core#>."
+puts "@prefix aat: <aat#>."
+puts
+
+reader = XML::Reader.io ARGF
+while reader.read
+  case reader.node_type
+
+  when XML::Reader::TYPE_ELEMENT
+    case reader.name
+
+    when "Subject"
+      subject_id = reader["Subject_ID"]
+      puts "aat:concept_#{subject_id} a skos:Concept."
+
+    when "Term_Text"
+      reader.read # move to element value
+      label = reader.value
+
+    when "Qualifier"
+      reader.read # move to element value
+      label = "#{label} (#{reader.value})"
+
+    when "Language"
+      reader.read # move to element value
+      language = reader.value if language == "" 
+
+    when "Parent_Subject_ID"
+      reader.read # move to element value
+      puts "aat:concept_#{subject_id} skos:broader aat:concept_#{reader.value}."
+    end
+
+  when XML::Reader::TYPE_END_ELEMENT
+    case reader.name
+    when "Preferred_Term"
+      puts "aat:concept_#{subject_id} skos:prefLabel \"#{label.gsub '"', '\"'}\"@en."
+      language = ""
+
+    when "Non-Preferred_Term"
+      if language == "70051/English"
+        puts "aat:concept_#{subject_id} skos:altLabel \"#{label.gsub '"', '\"'}\"@en."
+      end
+      language = ""
+    end
+  end
+
+end

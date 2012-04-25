@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+# © 2012 Ruben Verborgh - Multimedia Lab
+
+require 'rubygems'
+require 'xml'
+
+indent = ""
+
+reader = XML::Reader.io ARGF
+while reader.read
+  case reader.node_type
+  when XML::Reader::TYPE_ELEMENT
+    puts "#{indent}#{reader.name}"
+    indent = indent + "  "
+  when XML::Reader::TYPE_END_ELEMENT
+    indent.chop!.chop!
+  end
+end

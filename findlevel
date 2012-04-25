@@ -1,0 +1,71 @@
+#!/usr/bin/env ruby
+# © 2012 Ruben Verborgh - Multimedia Lab
+
+if ARGV == ['--help']
+  puts "Finds the level of depth of a vocabulary."
+  puts "usage: findlevel [SKOS concept hierarchy in Turtle format]"
+  Kernel.exit
+end
+
+broader = {} # concept URIs indexed by label
+
+# read lines
+ARGF.each do |line|
+    case line
+    # store concepts
+    when /^(<.*?>) <http:\/\/www\.w3\.org\/1999\/02\/22-rdf-syntax-ns#type> <http:\/\/www\.w3\.org\/2004\/02\/skos\/core#Concept>\s*[.;]/,
+         /^([^ ]+) a skos:Concept\s*[.;]/
+      (broader[$~[1]] ||= false)
+    
+    # store broader
+    when /^(<.*?>) <http:\/\/www\.w3\.org\/2004\/02\/skos\/core#broader> (<.*?>)\s*[.;]/,
+         /^([^ ]+) skos:broader ([^ ]+)\s*[.;]/
+      unless $~[1] == $~[2]
+        (broader[$~[2]] ||= {})
+        (broader[$~[1]] ||= {})[$~[2]] = true
+      end
+    
+    # store narrower
+    when /^(<.*?>) <http:\/\/www\.w3\.org\/2004\/02\/skos\/core#narrower> (<.*?>)\s*[.;]/,
+         /^([^ ]+) skos:narrower ([^ ]+)\s*[.;]/
+      unless $~[1] == $~[2]
+        (broader[$~[1]] ||= {})
+        (broader[$~[2]] ||= {})[$~[1]] = true
+      end
+    end
+end
+
+# output concepts without hierarchy
+broader.each do |narrow, broad|
+  unless broad
+    puts "#{narrow} :depth 0."
+    broader.delete narrow
+  end
+end
+
+# output actual levels
+level =  1 # top level is 1
+begin
+  # remember initial number of terms
+  prevsize = broader.length
+  
+  # find all terms without narrower terms, list their level, and remove them
+  terms = {}
+  broader.each do |narrow, broad|
+    if broad.empty?
+      terms[narrow] = true
+      broader.delete narrow
+      puts "#{narrow} :depth #{level}."
+    end
+  end
+  
+  # find parents of the found term
+  broader.each do |narrow, broad|
+    broader[narrow].clear if broad.find { |key, value| terms[key] }
+  end
+  
+  # increase level
+  level = level + 1
+
+# repeat until no change
+end until broader.length == prevsize

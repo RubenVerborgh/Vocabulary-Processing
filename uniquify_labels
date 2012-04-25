@@ -1,0 +1,57 @@
+#!/usr/bin/env ruby
+# © 2012 Ruben Verborgh - Multimedia Lab
+
+if ARGV == ['--help']
+  puts "Outputs concepts, prefLabels, and non-interfering altLabels."
+  puts "usage: uniquify_labels [SKOS concept hierarchy in Turtle format]"
+  Kernel.exit
+end
+
+prefixes = { :skos => "<http://www.w3.org/2004/02/skos/core#>" }
+concepts = {} # concept URIs indexed by label
+altLabels = {}
+subdivisions = {}
+
+# read lines
+ARGF.each do |line|
+    case line
+    # store prefixes
+    when /^@prefix\s+(\w+):\s*(<.*>)\s*\./
+      prefixes[$~[1]] = $~[2]
+      
+    # store prefLabels
+    when /^(<.*?>) <http:\/\/www.w3.org\/2004\/02\/skos\/core#prefLabel> "(.*)"@en\s*[.;]/,
+         /^([^ ]+) skos:prefLabel "(.*)"@en\s*[.;]/
+      (concepts[$~[2]] ||= []).push $~[1]
+    
+    # store altLabels
+    when /^(<.*?>) <http:\/\/www.w3.org\/2004\/02\/skos\/core#altLabel> "(.*)"@en\s*[.;]/,
+         /^([^ ]+) skos:altLabel "(.*)"@en\s*[.;]/
+      (altLabels[$~[1]] ||= []).push $~[2]
+    
+    # find subdivisions
+    when /^(<.*?>) <http:\/\/www.w3.org\/2004\/02\/skos\/core#inScheme> .*#generalSubdivision>.$/
+      subdivisions[$~[1]] = true
+    end
+end
+
+# write prefixes
+prefixes.each do |prefix, value|
+  puts "@prefix #{prefix}: #{value}."
+end
+
+# write concepts
+concepts.keys.sort.each do |label|
+  conceptList = concepts[label]
+  
+  # subdivisions have lowest priority
+  concept = conceptList.find { |c| !subdivisions[c] }
+  concept = conceptList.first unless concept
+  
+  puts %Q{#{concept} a skos:Concept.}
+  puts %Q{#{concept} skos:prefLabel "#{label}".}
+  
+  (altLabels[concept] || []).each do |altLabel|
+    puts %Q{#{concept} skos:altLabel "#{altLabel}".} unless concepts[altLabel]
+  end
+end

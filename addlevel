@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+# © 2012 Ruben Verborgh - Multimedia Lab
+
+if ARGV == ['--help']
+  puts "Adds level of depth to a reconciled collection."
+  puts "usage: addlevel [level file in Turtle format] [collection in TSV format]"
+  Kernel.exit
+end
+
+level = {}
+
+# read lines
+ARGF.each do |line|
+    case line
+    # store level
+    when /^<([^>]+)> :depth (\d+)\s*[.;]/,
+         /aat:concept_(\d+) :depth (\d+)\s*[.;]/
+      level[$~[1]] = $~[2]
+    
+    # print level
+    when /(http:\/\/id.loc.gov\/authorities\/[^#]+#concept)$/,
+         /aat#concept_(\d+)/
+      puts "#{line[0..-2]}\t#level{level[$~[1]]}"
+    end
+end
