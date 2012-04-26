@@ -10,6 +10,8 @@ end
 require 'rubygems'
 require 'xml'
 
+add_quantifier = false
+
 subject_id = ""
 label = ""
 language = ""
@@ -35,7 +37,7 @@ while reader.read
 
     when "Qualifier"
       reader.read # move to element value
-      label = "#{label} (#{reader.value})"
+      label = "#{label} (#{reader.value})" if add_quantifier
 
     when "Language"
       reader.read # move to element value
