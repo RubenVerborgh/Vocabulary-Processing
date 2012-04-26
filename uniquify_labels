@@ -44,9 +44,15 @@ end
 concepts.keys.sort.each do |label|
   conceptList = concepts[label]
   
+  # split subdivisions apart
+  concepts_in_subdivisions    = conceptList.find_all { |c|  subdivisions[c] }
+  concept_not_in_subdivisions = conceptList.find_all { |c| !subdivisions[c] }
+  
+  # it's not a concept if there are many with the same label
+  next if concept_not_in_subdivisions.length > 1
+  
   # subdivisions have lowest priority
-  concept = conceptList.find { |c| !subdivisions[c] }
-  concept = conceptList.first unless concept
+  concept = concept_not_in_subdivisions.first || concepts_in_subdivisions.first
   
   puts %Q{#{concept} a skos:Concept.}
   puts %Q{#{concept} skos:prefLabel "#{label}".}
