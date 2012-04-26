@@ -20,12 +20,12 @@ ARGF.each do |line|
       prefixes[$~[1]] = $~[2]
       
     # store prefLabels
-    when /^(<.*?>) <http:\/\/www.w3.org\/2004\/02\/skos\/core#prefLabel> "(.*)"@en\s*[.;]/,
+    when /^(<.*?>) <http:\/\/www.w3.org\/2004\/02\/skos\/core#prefLabel> "(.*)"@[eE][Nn]\s*[.;]/,
          /^([^ ]+) skos:prefLabel "(.*)"@en\s*[.;]/
       (concepts[$~[2]] ||= []).push $~[1]
     
     # store altLabels
-    when /^(<.*?>) <http:\/\/www.w3.org\/2004\/02\/skos\/core#altLabel> "(.*)"@en\s*[.;]/,
+    when /^(<.*?>) <http:\/\/www.w3.org\/2004\/02\/skos\/core#altLabel> "(.*)"@[eE][Nn]\s*[.;]/,
          /^([^ ]+) skos:altLabel "(.*)"@en\s*[.;]/
       (altLabels[$~[1]] ||= []).push $~[2]
     
