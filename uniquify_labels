@@ -30,7 +30,8 @@ ARGF.each do |line|
       (altLabels[$~[1]] ||= []).push $~[2]
     
     # find subdivisions
-    when /^(<.*?>) <http:\/\/www.w3.org\/2004\/02\/skos\/core#inScheme> .*#generalSubdivision>.$/
+    when /^(<.*?>) <http:\/\/www.w3.org\/2004\/02\/skos\/core#inScheme> .*#generalSubdivision>.$/,
+         /^(<.*?>) <http:\/\/www.w3.org\/2004\/02\/skos\/core#member> .*\/collection_Subdivisions>\s*.$/
       subdivisions[$~[1]] = true
     end
 end
