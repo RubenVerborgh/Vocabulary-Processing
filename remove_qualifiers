@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+# © 2012 Ruben Verborgh - Multimedia Lab
+
+if ARGV == ['--help']
+  puts "Removes qualifiers from prefLabels and altLabels."
+  puts "usage: remove_qualifiers [SKOS concept hierarchy in Turtle format]"
+  Kernel.exit
+end
+
+# read lines
+ARGF.each do |line|
+    case line
+    # store prefLabels
+    when /^(<.*?> <http:\/\/www.w3.org\/2004\/02\/skos\/core#[a-z]{3,4}Label> ".*?)\s+\(.+\)("@[eE][Nn]\s*[.;])/
+      puts "#{$~[1]}#{$~[2]}"
+    else
+      puts line
+    end
+end
